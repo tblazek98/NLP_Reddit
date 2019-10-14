@@ -105,4 +105,4 @@ if __name__=="__main__":
         r = RedditParser(subreddit, FILENAME)
         r.get_posts()
         r.update_posts()
-
+    print("[{}] Finished running all subreddits".format(datetime.datetime.now()))
