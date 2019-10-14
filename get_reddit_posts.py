@@ -66,6 +66,7 @@ class RedditParser(object):
         writing = []
         for key, value in self.posts.items():
             diff = now - datetime.datetime.utcfromtimestamp(float(value[1]))
+            print(diff, diff.seconds > (60*60*8), diff.seconds < (60*60*8)+(20*60))
             if value[-1]=="False" and diff > datetime.timedelta(hours=8) and diff < datetime.timedelta(hours=8, minutes=20):
                 update_url = "https://reddit.com/by_id/t3_" + key + ".json"
                 try:
@@ -105,4 +106,4 @@ if __name__=="__main__":
         r = RedditParser(subreddit, FILENAME)
         r.get_posts()
         r.update_posts()
-    print("[{}] Finished running all subreddits".format(datetime.datetime.now()))
+
