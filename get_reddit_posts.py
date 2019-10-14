@@ -43,7 +43,7 @@ class RedditParser(object):
             if info['id'] in self.posts:
                 continue
             created = info['created_utc']
-            if now - datetime.datetime.utcfromtimestamp(created) > datetime.timedelta(hours=8):
+            if (now - datetime.datetime.utcfromtimestamp(created)).seconds > (60*60*8) + (20*60):
                 continue
             post_id = info['id']
             title = info['title'].replace("\n","")
@@ -67,7 +67,7 @@ class RedditParser(object):
         for key, value in self.posts.items():
             diff = now - datetime.datetime.utcfromtimestamp(float(value[1]))
             print(diff, diff.seconds > (60*60*8), diff.seconds < (60*60*8)+(20*60))
-            if value[-1]=="False" and diff > datetime.timedelta(hours=8) and diff < datetime.timedelta(hours=8, minutes=20):
+            if value[-1]=="False" and diff.seconds > (60*60*8) and diff.seconds < (60*60*8)+(20*60):
                 update_url = "https://reddit.com/by_id/t3_" + key + ".json"
                 try:
                     reddit_response = requests.get(update_url,headers=self.headers)
@@ -106,4 +106,4 @@ if __name__=="__main__":
         r = RedditParser(subreddit, FILENAME)
         r.get_posts()
         r.update_posts()
-
+    print("[{}] Finished running all subreddits".format(datetime.datetime.now()))
