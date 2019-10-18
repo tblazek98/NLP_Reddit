@@ -110,8 +110,10 @@ class RedditParser(object):
     def proper_posts(self):
         look = {}
         texts = {}
+        count = 0
         for key, value in self.posts.items():
             if value[-1] == "True":
+                count += 1
                 score = calculate_weight(int(value[6]),int(value[7]))
                 tmp = [value[3], value[4], score]
                 # Check that it has at least 1 upvote or 1 award
@@ -155,7 +157,11 @@ if __name__=="__main__":
             all_posts += investigate
             b = Baseline(investigate)
             b.make_model()
-            print(subreddit + ": " + str(round(b.predict_model(),2)) + "%")
+            print("r/"+subreddit)
+            print("\tAccuracy: " + str(round(b.predict_model(),2)) + "%")
+            print("\tSample Size: " + str(len(investigate)))
         b = Baseline(all_posts)
         b.make_model()
-        print("Combined subreddits: " + str(round(b.predict_model(),2)) + "%")
+        print("Combined Subreddits")
+        print("\tAccuracy: " + str(round(b.predict_model(),2)) + "%")
+        print("\tSample Size: " + str(len(all_posts)))
