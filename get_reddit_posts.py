@@ -110,10 +110,8 @@ class RedditParser(object):
     def proper_posts(self):
         look = {}
         texts = {}
-        count = 0
         for key, value in self.posts.items():
             if value[-1] == "True":
-                count += 1
                 score = calculate_weight(int(value[6]),int(value[7]))
                 tmp = [value[3], value[4], score]
                 # Check that it has at least 1 upvote or 1 award
