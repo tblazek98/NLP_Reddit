@@ -1,19 +1,28 @@
 class Baseline(object):
-    def __init__(self, lines):
+    def __init__(self, lines, ratio=0.8):
         from nltk.corpus import stopwords
         from collections import Counter
+        from random import uniform
+        try:
+            float(ratio)
+        except:
+            raise ValueError
+        if ratio > 1 or ratio < 0:
+            raise ValueError
+
         self.train_posts = []
         self.test_posts = []
         self.stopwords = set(stopwords.words('english'))
         for i,line in enumerate(lines):
             title = line[0].split(" ")
+            rand_val = uniform(0,1)
             for stopword in self.stopwords:
                 while True:
                     try:
                         title.remove(stopword)
                     except ValueError:
                         break
-            if i < int(3*len(lines)/4):
+            if rand_val <= ratio:
                 self.train_posts.append((title, line[-1]))
             else:
                 self.test_posts.append((title, line[-1]))
