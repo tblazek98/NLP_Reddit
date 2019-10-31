@@ -5,9 +5,18 @@ import datetime
 import shutil
 import requests
 import time
+import argparse
+from nlp_model import Baseline
+import math
 DELIMITER = ","
 QUOTECHAR = '"'
 LINETERMINATOR = "\n"
+
+def calculate_weight(upvotes,awards):
+    try:
+        return int(math.log(upvotes + (awards*1000)))
+    except:
+        return -1
 
 class RedditParser(object):
     def __init__(self, subreddit, filename):
@@ -98,12 +107,59 @@ class RedditParser(object):
 
         shutil.move(tempfile.name, self.filename)
 
+    def proper_posts(self):
+        look = {}
+        texts = {}
+        for key, value in self.posts.items():
+            if value[-1] == "True":
+                score = calculate_weight(int(value[6]),int(value[7]))
+                tmp = [value[3], value[4], score]
+                # Check that it has at least 1 upvote or 1 award
+                if score > 0:
+                    # Check for duplicates, if duplicate then we take the highest score
+                    combined = tmp[0] + tmp[1]
+                    if combined in texts:
+                        if texts[combined][0] > score:
+                            continue
+                        else:
+                            # Remove duplicate
+                            look.pop(texts[combined][-1], None)
+                            texts[combined] = (score,key)
+                    else:
+                        look[key] = tmp
+                        texts[combined] = (score,key)
+        list_posts = []
+        for key, value in look.items():
+            list_posts.append(value)
+        return list_posts
+
 
 if __name__=="__main__":
     subreddits = ["dadjokes", "todayilearned","askreddit"]
     FILENAME = "reddit_posts.csv"
-    for subreddit in subreddits:
-        r = RedditParser(subreddit, FILENAME)
-        r.get_posts()
-        r.update_posts()
-    print("[{}] Finished running all subreddits".format(datetime.datetime.now()))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', dest='model', action='store_const', const=1, default=0, help='Run the NLP model based off previously gathered data')
+    args = parser.parse_args()
+    if not args.model:
+        for subreddit in subreddits:
+            r = RedditParser(subreddit, FILENAME)
+            r.get_posts()
+            r.update_posts()
+        print("[{}] Finished running all subreddits".format(datetime.datetime.now()))
+    else:
+        all_posts = []
+        print("============The baseline performance metrics============")
+        for subreddit in subreddits:
+            r = RedditParser(subreddit, FILENAME)
+            investigate = r.proper_posts()
+            all_posts += investigate
+            b = Baseline(investigate)
+            b.make_model()
+            print("r/"+subreddit)
+            print("\tAccuracy: " + str(round(b.predict_model(),2)) + "%")
+            print("\tSample Size: " + str(len(investigate)))
+        b = Baseline(all_posts)
+        b.make_model()
+        print("Combined Subreddits")
+        print("\tAccuracy: " + str(round(b.predict_model(),2)) + "%")
+        print("\tSample Size: " + str(len(all_posts)))
